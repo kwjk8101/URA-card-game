@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Building a Happy, Healthy City - The Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f8fafc;
+        }
+        h1, h2, h3, .font-heading {
+            font-family: 'Fredoka', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 280px;
+            max-height: 350px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 320px;
+            }
+        }
+        .card-art {
+            height: 120px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 8px;
+        }
+        .icon-shape { display: inline-flex; justify-content: center; align-items: center; width: 28px; height: 28px; position: relative; border-radius: 9999px; }
+        .hand-card-btn {
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            border: 3px solid transparent;
+        }
+        .hand-card-btn.p1-selected { border-color: #3b82f6; }
+        .hand-card-btn.p2-selected { border-color: #ef4444; }
+        .hand-card-btn.p3-selected { border-color: #22c55e; }
+        .hand-card-btn.p4-selected { border-color: #f97316; }
+
+        .hand-card-btn.selected {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .hand-card-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .player-area-container {
+            position: relative;
+        }
+        #turn-transition-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(241, 245, 249, 0.95);
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.3s;
+        }
+        .overlay-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-700">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-slate-800">Building a Happy, Healthy City</h1>
+            <div class="space-x-4">
+                <a href="#how-to-play" class="text-slate-600 hover:text-sky-600">How to Play</a>
+                <a href="#cards" class="text-slate-600 hover:text-sky-600">The Cards</a>
+                <a href="#gameplay-demo" class="text-slate-600 hover:text-sky-600">Gameplay Demo</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="bg-white">
+            <div class="container mx-auto px-6 py-20 text-center">
+                <h1 class="text-5xl md:text-6xl font-bold text-slate-900 leading-tight">Design Your Ideal Neighbourhood.</h1>
+                <p class="mt-4 text-xl text-slate-600 max-w-3xl mx-auto">A fun and fast-paced card game about shaping the future of Singapore. Compete with friends to build the best district for everyone!</p>
+                <a href="#how-to-play" class="mt-8 inline-block bg-sky-600 text-white font-bold text-lg px-8 py-3 rounded-full hover:bg-sky-700 transition-transform hover:scale-105">Learn to Play</a>
+            </div>
+        </section>
+
+        <section id="how-to-play" class="py-20">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold text-slate-900">How The Game Works</h2>
+                </div>
+                <div class="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-lg space-y-6">
+                    <div>
+                        <h3 class="font-heading text-2xl font-bold text-slate-800">The Objective</h3>
+                        <p>Be the player with the highest total score at the end of the game. You earn points by playing "Development" cards and lose points when your opponents play "Sabotage" cards on you!</p>
+                    </div>
+                    <div class="h-px bg-slate-200"></div>
+                     <div>
+                        <h3 class="font-heading text-2xl font-bold text-slate-800">Game Setup</h3>
+                        <ol class="list-decimal list-inside mt-2 space-y-2">
+                            <li><strong>Choose a Persona:</strong> Each player gets a "Resident Persona" card. This card is just for flavour and represents who you are building for.</li>
+                            <li><strong>Deal the Cards:</strong> Shuffle the main deck (Development, Sabotage & Surprise cards) and deal 6 cards to each player. This is your starting hand.</li>
+                        </ol>
+                    </div>
+                     <div class="h-px bg-slate-200"></div>
+                     <div>
+                        <h3 class="font-heading text-2xl font-bold text-slate-800">On Your Turn</h3>
+                        <ol class="list-decimal list-inside mt-2 space-y-2">
+                            <li><strong>Play 1 Card:</strong> Choose one card from your hand to play. This can be a Development, Sabotage, or Surprise card.
+                            </li>
+                             <li><strong>Draw 1 Card:</strong> After you play, you will automatically draw a new card to bring your hand back to 6 cards.</li>
+                            <li><strong>Automatic Surprise:</strong> If the card you draw is a "Surprise" card, you must resolve it immediately. It doesn't count as your turn, and you'll draw another card to replace it.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="cards" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold text-slate-900">Meet the Cards</h2>
+                </div>
+                <div id="card-gallery" class="space-y-12">
+                     </div>
+            </div>
+        </section>
+
+        <section id="gameplay-demo" class="py-20">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold text-slate-900">Interactive Gameplay Demo</h2>
+                    <p id="turn-indicator" class="mt-2 text-lg text-slate-600">Player 1's Turn</p>
+                </div>
+
+                <div class="player-area-container min-h-[300px]">
+                    <div id="turn-transition-overlay">
+                        <div class="text-center p-4">
+                            <h3 id="transition-text" class="text-3xl font-bold text-slate-800">Welcome to the Game!</h3>
+                            <button id="start-turn-btn" class="mt-4 bg-sky-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-700 transition">Click to Start Player 1's Turn</button>
+                        </div>
+                    </div>
+
+                    <div id="player-view" class="opacity-0">
+                        </div>
+                </div>
+
+
+                 <div class="mt-8 bg-white p-6 rounded-2xl shadow-lg">
+                     <h3 class="font-heading text-xl font-bold text-center mb-4">District Scoreboard</h3>
+                     <div class="flex flex-col md:flex-row gap-6 items-center">
+                        <div class="chart-container flex-grow">
+                            <canvas id="scoringChart"></canvas>
+                        </div>
+                        <div id="total-scores" class="flex-shrink-0 w-full md:w-48 space-y-3">
+                            <h4 class="font-heading text-lg font-bold text-center">Total Scores</h4>
+                            <div class="p-3 rounded-lg bg-sky-100 border-l-4 border-sky-500 flex justify-between items-center">
+                                <span class="font-bold text-sky-800">Player 1</span>
+                                <span id="p1-total-score" class="text-2xl font-bold text-sky-800">0</span>
+                            </div>
+                            <div class="p-3 rounded-lg bg-rose-100 border-l-4 border-rose-500 flex justify-between items-center">
+                                <span class="font-bold text-rose-800">Player 2</span>
+                                <span id="p2-total-score" class="text-2xl font-bold text-rose-800">0</span>
+                            </div>
+                            <div class="p-3 rounded-lg bg-green-100 border-l-4 border-green-500 flex justify-between items-center">
+                                <span class="font-bold text-green-800">Player 3</span>
+                                <span id="p3-total-score" class="text-2xl font-bold text-green-800">0</span>
+                            </div>
+                            <div class="p-3 rounded-lg bg-orange-100 border-l-4 border-orange-500 flex justify-between items-center">
+                                <span class="font-bold text-orange-800">Player 4</span>
+                                <span id="p4-total-score" class="text-2xl font-bold text-orange-800">0</span>
+                            </div>
+                        </div>
+                     </div>
+                    <div id="game-controls" class="text-center mt-6 flex justify-center items-center gap-4 opacity-0">
+                        <button id="play-card-btn" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition">Play Selected Card</button>
+                        <button id="new-game-btn" class="bg-slate-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-700 transition">Start New Game</button>
+                    </div>
+                 </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const ICONS = {
+            liveability: { html: '🏠', color: 'sky' },
+            sustainability: { html: '🌱', color: 'green' },
+            connectivity: { html: '🚇', color: 'purple' },
+            inclusiveness: { html: '🧑‍🤝‍🧑', color: 'rose' },
+        };
+
+        const CARDS = {
+            residents: [
+                { name: 'The Ahmad Family', desc: 'A young family with two small children.', art: '👨‍👩‍👧‍👦' },
+                { name: 'Raj the Student', desc: 'Studies at the local polytechnic.', art: '🧑‍🎓' },
+                { name: 'Aunty Susan', desc: 'A retiree who enjoys morning walks.', art: '👵' },
+                { name: 'Ben the Freelancer', desc: 'Works from home and local cafes.', art: '👨‍💻' },
+            ],
+            developments: [
+                { id: 'd1', name: 'New BTO Estate', flavor: 'Ballot liao!', pillar: 'liveability', points: 3, art: '🏘️', type: 'development' },
+                { id: 'd2', name: 'Co-Living Apartments', flavor: 'Meet your new roomie.', pillar: 'liveability', points: 2, art: '🏢', type: 'development' },
+                { id: 'd3', name: 'Smart Home Features', flavor: 'The future is now.', pillar: 'liveability', points: 2, art: '💡', type: 'development' },
+                { id: 'd4', name: 'Multi-Generational Flats', flavor: 'Three generations under one roof.', pillar: 'liveability', points: 4, art: '👨‍👩‍👧‍👦', type: 'development' },
+                { id: 'd5', name: 'Green Roofs & Walls', flavor: 'Literally a concrete jungle.', pillar: 'liveability', points: 2, art: '🌿', type: 'development' },
+                { id: 'd6', name: 'Childcare Centre', flavor: 'Drop off the kids.', pillar: 'liveability', points: 3, art: '👶', type: 'development' },
+                { id: 'd7', name: 'Senior-Friendly Upgrades', flavor: 'Making life easier for Ah Ma.', pillar: 'liveability', points: 3, art: '♿', type: 'development' },
+                { id: 'd8', name: 'Waterfront Park', flavor: 'Chill by the water.', pillar: 'sustainability', points: 3, art: '🏞️', type: 'development' },
+                { id: 'd9', name: 'Outdoor Gym', flavor: 'Get that workout in.', pillar: 'sustainability', points: 2, art: '💪', type: 'development' },
+                { id: 'd10', name: 'Nature Playgarden', flavor: 'Let the kids run wild.', pillar: 'sustainability', points: 2, art: '🦋', type: 'development' },
+                { id: 'd11', name: 'All-Weather Sports Dome', flavor: 'Rain or shine, the game is on.', pillar: 'sustainability', points: 4, art: '🏟️', type: 'development' },
+                { id: 'd12', name: 'Rooftop Tennis Court', flavor: 'Game, set, match!', pillar: 'sustainability', points: 2, art: '🎾', type: 'development' },
+                { id: 'd13', name: 'Skate Park', flavor: 'For the cool kids.', pillar: 'sustainability', points: 2, art: '🛹', type: 'development' },
+                { id: 'd14', name: 'Pet Park', flavor: 'A day out for your furry friends.', pillar: 'sustainability', points: 2, art: '🐕', type: 'development' },
+                { id: 'd15', name: 'Covered Walkway Network', flavor: 'No need umbrella.', pillar: 'connectivity', points: 3, art: '🚶‍♀️', type: 'development' },
+                { id: 'd16', 'name': 'Cycling Superhighway', flavor: 'On your left!', pillar: 'connectivity', points: 2, art: '🚲', type: 'development' },
+                { id: 'd17', name: 'Upgraded MRT Station', flavor: 'Faster, better, stronger.', pillar: 'connectivity', points: 4, art: '🚈', type: 'development' },
+                { id: 'd18', name: 'On-Demand Shuttle Bus', flavor: 'The bus that comes to you.', pillar: 'connectivity', points: 2, art: '🚐', type: 'development' },
+                { id: 'd19', name: 'Priority Bus Lanes', flavor: 'Zoom past the traffic jam.', pillar: 'connectivity', points: 3, art: '🚌', type: 'development' },
+                { id: 'd20', name: 'Pedestrian-Only Street', flavor: 'Walk freely, no cars allowed.', pillar: 'connectivity', points: 2, art: '🚸', type: 'development' },
+                { id: 'd21', name: 'EV Charging Stations', flavor: 'Power up your ride.', pillar: 'connectivity', points: 2, art: '⚡', type: 'development' },
+                { id: 'd22', name: 'Hawker Centre Upgrade', flavor: 'Confirm shiok.', pillar: 'inclusiveness', points: 3, art: '🍜', type: 'development' },
+                { id: 'd23', name: 'Community Library', flavor: 'Borrow, don\'t buy.', pillar: 'inclusiveness', points: 2, art: '📚', type: 'development' },
+                { id: 'd24', name: 'Local Arts Hub', flavor: 'For the aspiring artists.', pillar: 'inclusiveness', points: 2, art: '🎨', type: 'development' },
+                { id: 'd25', name: 'Community Kitchen', flavor: 'Cook and eat together.', pillar: 'inclusiveness', points: 3, art: '🍲', type: 'development' },
+                { id: 'd26', name: 'Digital Hub for Seniors', flavor: 'Teach Ah Gong how to use Zoom.', pillar: 'inclusiveness', points: 2, art: '💻', type: 'development' },
+                { id: 'd27', name: 'Flea Market Space', flavor: 'One man\'s trash...', pillar: 'inclusiveness', points: 2, art: '🎪', type: 'development' },
+                { id: 'd28', name: 'Farmers Market', flavor: 'Fresh produce from local farms.', pillar: 'inclusiveness', points: 3, art: '🥕', type: 'development' },
+            ],
+            sabotage: [
+                { id: 'sabo1', name: 'Complain to MP', flavor: 'Kena complain about the noise.', pillar: 'inclusiveness', points: -2, art: '🗣️', type: 'sabotage' },
+                { id: 'sabo2', name: 'Cancel Last Minute', flavor: 'Friend says cannot make it.', pillar: 'sustainability', points: -2, art: '🤦', type: 'sabotage' },
+                { id: 'sabo3', name: 'MRT Breakdown', flavor: 'As usual...', pillar: 'connectivity', points: -3, art: '🚈', type: 'sabotage' },
+                { id: 'sabo4', name: 'Stomp Complaint', flavor: 'Your district went viral... for the wrong reasons.', pillar: 'liveability', points: -3, art: '📸', type: 'sabotage' },
+            ],
+            surprises: [
+                { id: 'surp1', name: 'Monsoon Season!', flavor: 'Weather getting crazy.', desc: 'Heavy rain! All players gain +1 Connectivity point.', pillar: 'connectivity', points: 1, art: '⛈️', type: 'surprise' },
+                { id: 'surp2', name: 'NDP Funpack!', flavor: 'Majulah!', desc: 'It\'s National Day! All players get +2 Inclusiveness points.', pillar: 'inclusiveness', points: 2, art: '🇸🇬', type: 'surprise' },
+                { id: 'surp3', name: 'Tech Summit', flavor: 'Welcome to Singapore.', desc: 'A global summit is held. All players gain +2 Connectivity points.', pillar: 'connectivity', points: 2, art: '💡', type: 'surprise' },
+            ]
+        };
+
+        const playerColors = ['sky', 'rose', 'green', 'orange'];
+
+        function createCardHTML(card) {
+            let content = '';
+             switch (card.type) {
+                case 'resident':
+                    content = `
+                        <div class="flex items-center gap-4 p-3 bg-white rounded-lg shadow-sm">
+                            <div class="text-4xl w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">${card.art}</div>
+                            <div>
+                                <h4 class="font-bold font-heading">${card.name}</h4>
+                                <p class="text-xs text-slate-500">${card.desc}</p>
+                            </div>
+                        </div>`;
+                    break;
+                case 'development':
+                case 'sabotage':
+                    const isSabotage = card.type === 'sabotage';
+                    const icon = ICONS[card.pillar];
+                    const color = isSabotage ? 'red' : icon.color;
+                    const pointsText = (isSabotage ? '' : '+') + card.points;
+                    content = `
+                        <div class="flex flex-col rounded-xl overflow-hidden shadow-md bg-white h-full">
+                            <div class="p-3 bg-white border-b-4 border-${color}-300">
+                                <h4 class="font-bold font-heading text-lg text-slate-800">${card.name}</h4>
+                                <p class="text-xs italic text-slate-500">${card.flavor}</p>
+                            </div>
+                            <div class="card-art bg-${color}-50 text-5xl">${card.art}</div>
+                            <div class="p-3 text-center bg-slate-50">
+                                <div class="inline-flex items-center gap-2 px-3 py-1 bg-${color}-100 text-${color}-700 rounded-full font-bold">
+                                    ${icon.html} ${pointsText}
+                                </div>
+                            </div>
+                        </div>`;
+                    break;
+                case 'surprise':
+                    content = `
+                        <div class="flex items-center gap-4 p-4 bg-amber-100 rounded-lg shadow-sm border-l-4 border-amber-400 h-full">
+                            <div class="text-4xl w-16 h-16 bg-white rounded-full flex items-center justify-center">${card.art}</div>
+                            <div>
+                                <h4 class="font-bold font-heading text-amber-800">${card.name}</h4>
+                                <p class="text-sm italic text-amber-700">${card.flavor}</p>
+                                <p class="text-sm text-amber-900 mt-1">${card.desc}</p>
+                            </div>
+                        </div>`;
+                    break;
+            }
+            return content;
+        }
+        
+        function renderCardGallery() {
+            const gallery = document.getElementById('card-gallery');
+            gallery.innerHTML = '';
+            
+            const allPillarCards = [...CARDS.developments, ...CARDS.sabotage];
+
+            const gallerySections = [
+                { title: 'Resident Personas', data: CARDS.residents.map(c => ({...c, type: 'resident'})), cols: 4 },
+                { title: 'Liveability Cards', pillar: 'liveability', cols: 4 },
+                { title: 'Sustainability Cards', pillar: 'sustainability', cols: 4 },
+                { title: 'Connectivity Cards', pillar: 'connectivity', cols: 4 },
+                { title: 'Inclusiveness Cards', pillar: 'inclusiveness', cols: 4 },
+                { title: 'Surprise Cards', data: CARDS.surprises, cols: 4 }
+            ];
+
+            gallerySections.forEach(section => {
+                const sectionEl = document.createElement('div');
+                let cardHTML = `<h3 class="font-heading text-2xl font-bold text-slate-800 mb-4">${section.title}</h3>`;
+                cardHTML += `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-${section.cols} gap-4">`;
+
+                const cardsToRender = section.data ? section.data : allPillarCards.filter(c => c.pillar === section.pillar);
+                
+                cardsToRender.forEach(card => cardHTML += createCardHTML(card));
+                
+                cardHTML += `</div>`;
+                sectionEl.innerHTML = cardHTML;
+                gallery.appendChild(sectionEl);
+            });
+        }
+
+        let mainDeck = [];
+        let playerHands = [[], [], [], []];
+        let playerPersonas = [];
+        let scores = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+        let currentPlayer = 0;
+        let selectedCard = null;
+        let scoringChart;
+
+        function updateScoreboard() {
+            for (let i = 0; i < 4; i++) {
+                scoringChart.data.datasets[i].data = scores[i];
+                const total = scores[i].reduce((a, b) => a + b, 0);
+                document.getElementById(`p${i+1}-total-score`).textContent = total;
+            }
+            scoringChart.update();
+        }
+
+        function showTurnTransition(playerIndex) {
+            document.getElementById('player-view').classList.add('opacity-0');
+            document.getElementById('game-controls').classList.add('opacity-0');
+            
+            const overlay = document.getElementById('turn-transition-overlay');
+            document.getElementById('transition-text').textContent = `Player ${playerIndex + 1}, it's your turn!`;
+            document.getElementById('start-turn-btn').textContent = `Start Player ${playerIndex + 1}'s Turn`;
+            overlay.classList.remove('overlay-hidden');
+        }
+
+        function showPlayerView() {
+            document.getElementById('turn-transition-overlay').classList.add('overlay-hidden');
+
+            const playerView = document.getElementById('player-view');
+            playerView.innerHTML = ''; // Clear previous views
+
+            const playerArea = document.createElement('div');
+            const color = playerColors[currentPlayer];
+            playerArea.className = `player-area bg-white p-6 rounded-2xl shadow-lg border-t-4 border-${color}-500`;
+            
+            let handHTML = `<div id="persona-view"></div>
+                            <h4 class="font-heading text-lg font-bold text-center mb-2">Player ${currentPlayer + 1}'s Hand</h4>
+                            <div id="hand-view" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 min-h-[150px]"></div>`;
+            playerArea.innerHTML = handHTML;
+            playerView.appendChild(playerArea);
+
+            // Render persona and hand
+            document.getElementById('persona-view').innerHTML = createCardHTML(playerPersonas[currentPlayer]);
+            renderPlayerHand();
+            
+            playerView.classList.remove('opacity-0');
+            document.getElementById('game-controls').classList.remove('opacity-0');
+        }
+
+        function renderPlayerHand() {
+            const handContainer = document.getElementById("hand-view");
+            handContainer.innerHTML = '';
+            playerHands[currentPlayer].forEach(card => {
+                const cardBtn = document.createElement('button');
+                cardBtn.className = `hand-card-btn w-full p-2 bg-white rounded-lg shadow text-left flex items-center gap-2 h-full`;
+                cardBtn.dataset.cardId = card.id || card.name;
+                
+                const icon = ICONS[card.pillar];
+                const pointsText = card.points < 0 ? card.points : `+${card.points}`;
+                const cardColor = card.type === 'sabotage' ? 'red' : (card.type === 'surprise' ? 'amber' : icon.color);
+                
+                cardBtn.innerHTML = `
+                    <div class="flex-shrink-0 w-10 h-10 bg-${cardColor}-100 rounded-md flex justify-center items-center text-2xl">${card.art}</div>
+                    <div class="flex-grow">
+                        <p class="font-bold text-sm font-heading text-slate-800">${card.name}</p>
+                        <div class="flex items-center gap-1 text-xs font-bold text-${cardColor}-700">${icon ? icon.html : '⭐️'} ${card.type === 'surprise' ? 'Event' : pointsText}</div>
+                    </div>`;
+
+                cardBtn.addEventListener('click', () => {
+                    const currentlySelected = document.querySelector('.hand-card-btn.selected');
+                    if(currentlySelected) {
+                        currentlySelected.classList.remove('selected', `p${currentPlayer + 1}-selected`);
+                    }
+                    selectedCard = card;
+                    cardBtn.classList.add('selected', `p${currentPlayer + 1}-selected`);
+                });
+                handContainer.appendChild(cardBtn);
+            });
+        }
+        
+        function applySurpriseEffect(card) {
+             alert(`Surprise! ${card.name}\n${card.desc}`);
+            const pillarIndex = scoringChart.data.labels.findIndex(label => label.toLowerCase() === card.pillar);
+            if (pillarIndex !== -1) {
+                for(let i=0; i<4; i++) {
+                    scores[i][pillarIndex] += card.points;
+                }
+            }
+            updateScoreboard();
+        }
+
+        function handleAutomaticSurprise(drawnCard) {
+            applySurpriseEffect(drawnCard);
+            // Draw another card to replace the surprise card
+             if (mainDeck.length > 0) {
+                const replacementCard = mainDeck.pop();
+                playerHands[currentPlayer].push(replacementCard);
+                // Check if the replacement is also a surprise (unlikely but good to handle)
+                if(replacementCard.type === 'surprise') {
+                    // Remove the new surprise from hand before handling it, to prevent infinite loops
+                    playerHands[currentPlayer] = playerHands[currentPlayer].filter(c => (c.id || c.name) !== (replacementCard.id || replacementCard.name));
+                    handleAutomaticSurprise(replacementCard);
+                }
+            }
+        }
+
+        function endTurn() {
+            // 1. Draw a card to replenish hand
+            if (mainDeck.length > 0) {
+                const drawnCard = mainDeck.pop();
+                if(drawnCard.type === 'surprise') {
+                    handleAutomaticSurprise(drawnCard);
+                } else {
+                    playerHands[currentPlayer].push(drawnCard);
+                }
+            }
+
+            // 2. Reset selection and update scores
+            selectedCard = null;
+            updateScoreboard();
+
+            // 3. Advance to next player
+            currentPlayer = (currentPlayer + 1) % 4;
+            document.getElementById('turn-indicator').textContent = `Player ${currentPlayer + 1}'s Turn`;
+
+            // 4. Show transition screen for the next player
+            showTurnTransition(currentPlayer);
+        }
+
+        function playCard() {
+            if (!selectedCard) {
+                alert("Please select a card to play.");
+                return;
+            }
+
+            const pillarIndex = scoringChart.data.labels.findIndex(label => label.toLowerCase() === selectedCard.pillar);
+
+            if (selectedCard.type === 'development') {
+                if(pillarIndex > -1) scores[currentPlayer][pillarIndex] += selectedCard.points;
+            } else if (selectedCard.type === 'sabotage') {
+                let target = -1;
+                while (target < 0 || target > 3 || target === currentPlayer) {
+                    const input = prompt(`Choose a player to sabotage (1-4, not yourself)`);
+                    if(input === null) return; // Player cancelled
+                    target = parseInt(input, 10) - 1;
+                    if (isNaN(target) || target < 0 || target > 3 || target === currentPlayer) {
+                         alert("Invalid target. Please enter a number from 1 to 4, but not your own player number.");
+                    }
+                }
+                if(pillarIndex > -1) scores[target][pillarIndex] += selectedCard.points;
+            } else if (selectedCard.type === 'surprise') {
+                applySurpriseEffect(selectedCard);
+            }
+
+            // Remove the played card from hand
+            playerHands[currentPlayer] = playerHands[currentPlayer].filter(c => (c.id || c.name) !== (selectedCard.id || selectedCard.name));
+            
+            endTurn();
+        }
+        
+        function startNewGame() {
+            mainDeck = [...CARDS.developments, ...CARDS.sabotage, ...CARDS.surprises];
+            mainDeck.sort(() => Math.random() - 0.5); // Shuffle deck
+            
+            let residentPool = [...CARDS.residents.map(c => ({...c, type: 'resident'}))];
+            residentPool.sort(() => Math.random() - 0.5);
+            
+            scores = Array(4).fill(0).map(() => [0, 0, 0, 0]);
+            
+            for (let i = 0; i < 4; i++) {
+                playerHands[i] = mainDeck.splice(0, 6);
+                playerPersonas[i] = residentPool.pop();
+            }
+            
+            currentPlayer = 0;
+            updateScoreboard();
+            document.getElementById('turn-indicator').textContent = `Player 1's Turn`;
+            showTurnTransition(currentPlayer);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctx = document.getElementById('scoringChart').getContext('2d');
+            scoringChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Liveability', 'Sustainability', 'Connectivity', 'Inclusiveness'],
+                    datasets: [
+                        { label: 'Player 1', data: [], backgroundColor: 'rgba(59, 130, 246, 0.6)', borderColor: 'rgba(59, 130, 246, 1)', borderWidth: 2 },
+                        { label: 'Player 2', data: [], backgroundColor: 'rgba(239, 68, 68, 0.6)', borderColor: 'rgba(239, 68, 68, 1)', borderWidth: 2 },
+                        { label: 'Player 3', data: [], backgroundColor: 'rgba(34, 197, 94, 0.6)', borderColor: 'rgba(34, 197, 94, 1)', borderWidth: 2 },
+                        { label: 'Player 4', data: [], backgroundColor: 'rgba(249, 115, 22, 0.6)', borderColor: 'rgba(249, 115, 22, 1)', borderWidth: 2 }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { x: { beginAtZero: true, stacked: false, grid: { display: false } }, y: { ticks: { font: { size: 14, weight: 'bold' } } } },
+                    plugins: { legend: { display: true, position: 'top' }, tooltip: { enabled: true } }
+                }
+            });
+
+            document.getElementById('start-turn-btn').addEventListener('click', showPlayerView);
+            document.getElementById('play-card-btn').addEventListener('click', playCard);
+            document.getElementById('new-game-btn').addEventListener('click', startNewGame);
+
+            renderCardGallery();
+            startNewGame();
+        });
+    </script>
+</body>
+</html>
